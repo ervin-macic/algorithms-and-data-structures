@@ -25,3 +25,5 @@ if __name__ == "__main__":
 # EN
 # ENNEENE
 # NENN
+
+# Idea is simple, only case that is impossible is one N and arbitrarily many E symbols.
