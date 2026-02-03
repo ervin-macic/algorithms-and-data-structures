@@ -9,7 +9,7 @@ class Node:
         self.left = None 
         self.right = None 
 
-class BST:
+class SplayTree:
     def __init__(self, lst:List[int] = None):
         self.root = None
         if lst:
@@ -18,6 +18,88 @@ class BST:
                 self.insert(new_node)
     
     def empty(self) -> bool: return self.root is None
+
+    def right_rotate(self, y: Node):
+        x = y.left
+        if x is None:
+            return # cannot rotate
+
+        # move x's right subtree to y's left
+        y.left = x.right
+        if x.right:
+            x.right.p = y
+
+        # link x to y's parent
+        x.p = y.p
+        if y.p is None:
+            self.root = x
+        elif y == y.p.left:
+            y.p.left = x
+        else:
+            y.p.right = x
+
+        # put y on x's right
+        x.right = y
+        y.p = x
+
+
+    def left_rotate(self, x: Node):
+        y = x.right
+        if y is None:
+            return  # cannot rotate
+
+        # move y's left subtree to x's right
+        x.right = y.left
+        if y.left:
+            y.left.p = x
+
+        # link y to x's parent
+        y.p = x.p
+        if x.p is None:
+            self.root = y
+        elif x == x.p.left:
+            x.p.left = y
+        else:
+            x.p.right = y
+
+        # put x on y's left
+        y.left = x
+        x.p = y
+
+    
+    def splay(self, x:Node) -> None:
+        while x.p != None:
+            y = x.p
+            # x has parent but no grandparent (one away from root)
+            if x.p.p is None:
+                if y.right == x:
+                    self.left_rotate(y)
+                else:
+                    self.right_rotate(y)
+            else:
+                z = x.p.p
+
+                # zig zig left
+                if z.left == y and y.left == x:
+                    self.right_rotate(z)
+                    self.right_rotate(y)
+
+                # zig zig right
+                elif z.right == y and y.right == x:
+                    self.left_rotate(z)
+                    self.left_rotate(y)
+
+                # zig zag 
+                elif z.left == y and y.right == x:
+                    self.left_rotate(y)
+                    self.right_rotate(z)
+
+                # zag zig
+                else:
+                    self.right_rotate(y)
+                    self.left_rotate(z)
+
+                
 
     def search(self, v:int) -> Optional[Node]:
         x = self.root 
@@ -92,6 +174,7 @@ class BST:
                     return self._max_from_node(x.left)
 
     def visualize(self, figsize=(6, 6), node_size=2000):
+
         if self.root is None:
             print("Tree is empty")
             return
@@ -177,9 +260,23 @@ class BST:
             y.left.p = y
 
 
-
-tree = BST([5,5,21,8,13,34,89,55])
+tree = SplayTree()
+n10 = Node(10)
+tree.insert(n10)
+n1 = Node(1, n10)
+n12 = Node(12, n10)
+n8 = Node(8, n1)
+n4 = Node(4, n8)
+n2 = Node(2, n4)
+n6 = Node(6, n4)
+n5 = Node(5, n6)
+n10.right = n12 
+n10.left = n1
+n1.right = n8 
+n8.left = n4 
+n4.left = n2 
+n4.right = n6 
+n6.left = n5
 tree.visualize()
-target = tree.root.right
-tree.delete(target)
+tree.splay(n2)
 tree.visualize()

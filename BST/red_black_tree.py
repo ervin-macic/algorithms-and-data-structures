@@ -1,15 +1,13 @@
 from typing import List, Optional
-import networkx as nx
-import matplotlib.pyplot as plt
-
 class Node:
     def __init__(self, val:int, parent = None):
         self.val = val 
         self.p = parent 
         self.left = None 
         self.right = None 
+        self.colour = None
 
-class BST:
+class RBT:
     def __init__(self, lst:List[int] = None):
         self.root = None
         if lst:
@@ -18,6 +16,24 @@ class BST:
                 self.insert(new_node)
     
     def empty(self) -> bool: return self.root is None
+
+    def right_rotate(self, y:Node):
+        if y.p.left == y:
+            y.p.left = x 
+        else:
+            y.p.right = x 
+        y.p = x
+        y.left = x.right
+        x.right = y
+    
+    def left_rotate(self, x:Node):
+        if x.p.left == x:
+            x.p.left = y 
+        else:
+            x.p.right = y 
+        x.p = y 
+        x.right = y.left 
+        y.left = x 
 
     def search(self, v:int) -> Optional[Node]:
         x = self.root 
@@ -46,7 +62,9 @@ class BST:
             y.left = z 
         else:
             y.right = z
-    
+    def rb_insert(self, x:Node):
+        self.insert(x)
+
     def _max_from_node(self, x:Node) -> Node:
         assert x is not None 
         y = x
@@ -92,6 +110,9 @@ class BST:
                     return self._max_from_node(x.left)
 
     def visualize(self, figsize=(6, 6), node_size=2000):
+        import networkx as nx
+        import matplotlib.pyplot as plt
+
         if self.root is None:
             print("Tree is empty")
             return
