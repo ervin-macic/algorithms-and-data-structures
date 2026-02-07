@@ -1,7 +1,9 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from typing import List
 MAXN = 100
 graph = [[] for _ in range(MAXN)]
+d = [0 for _ in range(MAXN)] # distance from source
+p = [0 for _ in range(MAXN)] # parent for path reconstruction
 c = [[0 for _ in range(MAXN)] for _ in range(MAXN)]
 f = [[0 for _ in range(MAXN)] for _ in range(MAXN)]
 r = [[0 for _ in range(MAXN)] for _ in range(MAXN)]
@@ -12,8 +14,10 @@ def add_edge(i, j, cap):
     c[i][j] = cap
     graph[i].append(j)
     graph[j].append(i)
-    r[i][j] = c[i][j]
-    f[i][j] = 0 # unnecessary?
+    r[i][j] = cap
+    r[j][i] = 0
+    f[i][j] = 0
+    f[j][i] = 0
 
 def add_flow(i, j, x):
     f[i][j] += x 
@@ -27,36 +31,45 @@ def clear_flow():
             f[i][j] = 0
             r[i][j] = c[i][j]
 
-def clear_seen():
-    global seen 
+def clear_seen_and_p():
+    global seen, p
     seen = defaultdict(bool)
-    
+    p = [0 for _ in range(MAXN)]
 
 def augment_path(path):
     bottleneck = min([r[u][v] for u,v in zip(path, path[1:])])
     for u,v in zip(path, path[1:]):
         add_flow(u, v, bottleneck)
 
-def find_augmenting_path(s, t) -> (List[int], bool):
-    seen[s] = True 
-    if s == t:
-        return [s], True 
-    else:
-        for v in graph[s]:
-            if not seen[v] and r[s][v] > 0:
-                path, reaching = find_augmenting_path(v, t)
-                if reaching:
-                    path = [s] + path 
-                    return path, True
+def bfs_find_augmenting_path(s, t) -> (List[int], bool):
+    q = deque()
+    q.append(s)
+    seen[s] = True
+    while q:
+        u = q.popleft()
+        if u == t: # first time reaching target
+            min_path = [u]
+            # go through u's parents to reconstruct path leading to t
+            while u != s:
+                u = p[u]
+                min_path.append(u)
+            min_path.reverse()
+            return min_path, True 
+        
+        for v in graph[u]:
+            if not seen[v] and r[u][v] > 0:
+                q.append(v)
+                seen[v] = True
+                p[v] = u
     return [], False
 
-def ford_fulkerson():
+def edmonds_karp():
     while True:
-        clear_seen()
-        path, reaching = find_augmenting_path(s, t)
+        clear_seen_and_p()
+        min_path, reaching = bfs_find_augmenting_path(s, t)
         if not reaching:
             break
-        augment_path(path)
+        augment_path(min_path)
     return f
 
 s = 1
@@ -66,7 +79,7 @@ n = 8
 for (i, j, cap) in edges:
     add_edge(i, j, cap)
 
-ford_fulkerson()
+edmonds_karp()
 for i in range(n+1):
     for j in range(n+1):
         if r[i][j] != 0:

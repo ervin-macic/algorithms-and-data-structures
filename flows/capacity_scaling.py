@@ -54,25 +54,37 @@ def scaled_find_augmenting_path(s, t, delta) -> (List[int], bool):
 def scaled_ford_fulkerson():
     C = max(max(row) for row in c)
     delta = 2 ** (floor(log2(C))) # largest power of 2 at most max capacity
-    while delta >= 1:
-        while True:
+    while delta >= 1: # run at most 1 + log(C) times
+        while True: # at most O(m) iterations since each augment path increases f by at least delta and   
             clear_seen()
-            path, reaching = scaled_find_augmenting_path(s, t, delta)
+            path, reaching = scaled_find_augmenting_path(s, t, delta) # O(m) since DFS
             if not reaching:
                 break
             augment_path(path)
         delta //= 2
     return f
 
+# Colab large example
+# s = 1
+# t = 8
+# edges = [(1, 2, 10), (1, 3, 5), (1, 4, 15), (2, 5, 9), (2, 6, 15), (2, 3, 4), (3, 6, 8), (3, 4, 4), (5, 8, 10), (5, 6, 15), (6, 8, 10), (6, 7, 15), (7, 3, 6), (7, 8, 10)]
+# n = 8
+# for (i, j, cap) in edges:
+#     add_edge(i, j, cap)
+
+# scaled_ford_fulkerson()
+# for i in range(n+1):
+#     for j in range(n+1):
+#         if r[i][j] != 0:
+#             print(f"({i,j} with residue: {r[i][j]}")
+
+
+# Problem sheet example
 s = 1
-t = 8
-edges = [(1, 2, 10), (1, 3, 5), (1, 4, 15), (2, 5, 9), (2, 6, 15), (2, 3, 4), (3, 6, 8), (3, 4, 4), (5, 8, 10), (5, 6, 15), (6, 8, 10), (6, 7, 15), (7, 3, 6), (7, 8, 10)]
-n = 8
+t = 4
+edges = [(1,2,256), (1,3,255), (2,3,1), (2,4,255), (3,4,256)]
+n = 4
 for (i, j, cap) in edges:
     add_edge(i, j, cap)
 
 scaled_ford_fulkerson()
-for i in range(n+1):
-    for j in range(n+1):
-        if r[i][j] != 0:
-            print(f"({i,j} with residue: {r[i][j]}")
